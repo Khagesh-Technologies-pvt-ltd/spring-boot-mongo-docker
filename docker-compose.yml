@@ -14,7 +14,7 @@ services:
     depends_on:
       - mongo
     networks:
-    - bridge  
+    - ksbridge  
     deploy:  # This will be considered only in docker swarm.
       replicas: 2
       update_config:
@@ -34,7 +34,7 @@ services:
       - mongodb:/data/db
     restart: always
     networks:
-    - bridge
+    - ksbridge
     
 volumes:
   mongodb:
