@@ -1,20 +1,21 @@
-version: '3.1'
+version: 3.1
 
 services:
-  springboot:
+  springappcontainer:
+
     image: khagesh4/springappimage:1
-    restart: always # This will be ignored if we deploy in docker swarm
-    environment:
-    - MONGO_DB_HOSTNAME=mongo
-    - MONGO_DB_USERNAME=devdb
-    - MONGO_DB_PASSWORD=devdb123
+    restart: always
+    container: springappcontainer
     ports:
-      - 8085:8080
-    working_dir: /opt/app
-    depends_on:
-      - mongo
+      8085:8080
+    environments:
+      MONGO_DB_HOSTNAME=mongo
+      MONGO_INITDB_ROOT_USERNAME=devdb
+      MONGO_INITDB_ROOT_PASSWORD=devdb@123
+    workdir: /opt/app/
+    depends on: mongo
     networks:
-    - ksbridge  
+    - ksoverlay
     deploy:  # This will be considered only in docker swarm.
       replicas: 2
       update_config:
@@ -26,20 +27,23 @@ services:
         max_attempts: 5
 
   mongo:
-    image: mongo
-    environment:
-    - MONGO_INITDB_ROOT_USERNAME=devdb
-    - MONGO_INITDB_ROOT_PASSWORD=devdb123
+    image: mongoimage
+    container: spring_mongo_container
+    environments:
+      MONGO_INITDB_ROOT_USERNAME=devdb
+      MONGO_INITDB_ROOT_PASSWORD=devdb@123
     volumes:
-      - mongodb:/data/db
+    - mongoebsvol:/data/db
     restart: always
     networks:
-    - ksbridge
-    
-volumes:
-  mongodb:
-    external: true
-    
-networks:
-  springappnetwork:
-    external: true
+    - ksoverlay
+
+  volumes:
+    mongoebsvol:
+      driver: rexray/ebs
+      external: 
+
+  networks:
+    ksbridge:
+      driver: overlay
+      external: 
